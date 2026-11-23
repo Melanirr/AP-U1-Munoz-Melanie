@@ -36,7 +36,8 @@ public class TurnoJusto {
     private static final int PUERTO = Integer.getInteger("turno.puerto", 5050);
     private static final String TOKEN = System.getProperty("turno.token", "practica-token");
     private static final int CUPO = Integer.getInteger("turno.cupo", 10);
-    private static final Path CARPETA_LOGS = Path.of("logs");
+    private static final Path CARPETA_LOGS = Path.of(
+            System.getProperty("turno.logs", "logs"));
     private static final Map<Path, Object> CERROJOS_LOG = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws Exception {
@@ -61,6 +62,7 @@ public class TurnoJusto {
                 new Ventanilla(id, true).iniciarConsola();
             }
             case "carga" -> ejecutarPruebaCarga();
+            case "solicitud" -> ejecutarSolicitud(args);
             case "orden" -> generarOrdenTotal();
             default -> mostrarAyuda();
         }
@@ -82,6 +84,9 @@ public class TurnoJusto {
                 Prueba concurrente (coordinador ya iniciado):
                   java TurnoJusto carga
 
+                Solicitud no interactiva (coordinador ya iniciado):
+                  java TurnoJusto solicitud <1|2|3> <TURNO|LLAMAR|ESTADO|LATIDO>
+
                 Comparacion con condicion de carrera:
                   java TurnoJusto coordinador --inseguro
                   java TurnoJusto carga
@@ -91,6 +96,23 @@ public class TurnoJusto {
 
                 Ordenes de una ventanilla: turno, llamar, estado, salir
                 """);
+    }
+
+    private static void ejecutarSolicitud(String[] args) {
+        if (args.length != 3) {
+            throw new IllegalArgumentException(
+                    "Uso: solicitud <1|2|3> <TURNO|LLAMAR|ESTADO|LATIDO>");
+        }
+        int id = Integer.parseInt(args[1]);
+        if (id < 1 || id > 3) {
+            throw new IllegalArgumentException("La ventanilla debe ser 1, 2 o 3");
+        }
+        String tipo = args[2].toUpperCase(Locale.ROOT);
+        if (!Set.of("TURNO", "LLAMAR", "ESTADO", "LATIDO").contains(tipo)) {
+            throw new IllegalArgumentException("Tipo de solicitud no valido: " + tipo);
+        }
+        Respuesta respuesta = new Ventanilla(id, false).enviar(tipo);
+        System.out.println(respuesta.paraHumano());
     }
 
     // ---------------------------------------------------------------------
@@ -436,28 +458,41 @@ public class TurnoJusto {
     private static void generarOrdenTotal() throws IOException {
         Files.createDirectories(CARPETA_LOGS);
         List<EventoLog> eventos = new ArrayList<>();
-        try (var archivos = Files.list(CARPETA_LOGS)) {
+        try (var archivos = Files.walk(CARPETA_LOGS)) {
             for (Path archivo : archivos
+                    .filter(Files::isRegularFile)
                     .filter(p -> p.getFileName().toString().endsWith(".log"))
                     .filter(p -> !p.getFileName().toString().equals("orden_total.log"))
+                    .filter(TurnoJusto::esRegistroDeEscenario)
                     .toList()) {
+                String origen = CARPETA_LOGS.relativize(archivo).toString()
+                        .replace('\\', '/');
                 for (String linea : Files.readAllLines(archivo, StandardCharsets.UTF_8)) {
                     EventoLog evento = EventoLog.desdeLinea(linea);
                     if (evento != null) {
-                        eventos.add(evento);
+                        eventos.add(evento.conOrigen(origen));
                     }
                 }
             }
         }
 
         eventos.sort(Comparator.comparingInt(EventoLog::lamport)
-                .thenComparingInt(EventoLog::idProceso));
+                .thenComparingInt(EventoLog::idProceso)
+                .thenComparing(EventoLog::lineaOriginal));
         Path destino = CARPETA_LOGS.resolve("orden_total.log");
         Files.write(destino, eventos.stream().map(EventoLog::lineaOriginal).toList(),
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING);
         System.out.println("Orden total generado: " + destino.toAbsolutePath());
         System.out.println("Eventos combinados: " + eventos.size());
+    }
+
+    private static boolean esRegistroDeEscenario(Path archivo) {
+        Path relativo = CARPETA_LOGS.relativize(archivo);
+        if (relativo.getNameCount() < 2) {
+            return false;
+        }
+        return relativo.getName(0).toString().matches("E[1-5]");
     }
 
     // ---------------------------------------------------------------------
@@ -525,6 +560,11 @@ public class TurnoJusto {
             } catch (NumberFormatException error) {
                 return null;
             }
+        }
+
+        private EventoLog conOrigen(String origen) {
+            return new EventoLog(lamport, idProceso,
+                    lineaOriginal + ";origen=" + limpiar(origen));
         }
     }
 
