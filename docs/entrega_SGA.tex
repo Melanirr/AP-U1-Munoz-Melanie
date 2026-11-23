@@ -1,0 +1,39 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,tabularx}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{2em}
+\begin{document}
+\thispagestyle{empty}
+{\small Universidad Técnica Estatal de Quevedo \quad Ingeniería de Software}\par
+\vspace{12mm}
+{\LARGE\bfseries TurnoJusto}\par
+{\large Entrega de la práctica AP-U1 · Grupo 2}\par
+\medskip
+Melanie Michelle Muñoz Vera\\
+Aplicaciones Distribuidas (ISR-701)\\
+23 de noviembre de 2026
+\bigskip
+
+\section*{Repositorio de entrega}
+\url{https://github.com/Melanirr/AP-U1-Munoz-Melanie}
+
+El repositorio reúne el prototipo Java, las instrucciones para ejecutar el coordinador y las tres ventanillas, las capturas de consola y los registros de cada proceso.
+
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Material & Ubicación en el repositorio\\ \midrule
+Guía de ejecución & \texttt{README.md}\\
+Informe y fuente & \texttt{docs/informe.pdf} y \texttt{docs/informe.tex}\\
+Evidencias & \texttt{docs/img/} y \texttt{logs/}\\
+Orden de eventos & \texttt{logs/orden\_total.log}\\
+\bottomrule
+\end{tabularx}
+
+\section*{Resultado principal}
+Con cupo 10, la reproducción normal asignó los números 1 a 10 y rechazó 20 solicitudes. En modo inseguro se aceptaron las 30 solicitudes y todas devolvieron 1. El informe distingue las capturas del laboratorio de la reproducción local de E1 a E6. Queda pendiente la captura inicial de los adaptadores de red de E0.
+\end{document}

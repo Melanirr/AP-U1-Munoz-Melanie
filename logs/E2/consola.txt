@@ -1,0 +1,13 @@
+V1 LLAMAR -> resultado=RECHAZADA, numero=-1, emitidos=0, cupo=10, detalle=sin_turnos_en_espera, lamport=3
+V1 TURNO -> resultado=ASIGNADO, numero=1, emitidos=1, cupo=10, detalle=turno_creado, lamport=5
+V1 TURNO -> resultado=ASIGNADO, numero=2, emitidos=2, cupo=10, detalle=turno_creado, lamport=7
+V1 TURNO -> resultado=ASIGNADO, numero=3, emitidos=3, cupo=10, detalle=turno_creado, lamport=9
+V1 TURNO -> resultado=ASIGNADO, numero=4, emitidos=4, cupo=10, detalle=turno_creado, lamport=11
+V1 TURNO -> resultado=ASIGNADO, numero=5, emitidos=5, cupo=10, detalle=turno_creado, lamport=13
+V1 TURNO -> resultado=ASIGNADO, numero=6, emitidos=6, cupo=10, detalle=turno_creado, lamport=15
+V1 TURNO -> resultado=ASIGNADO, numero=7, emitidos=7, cupo=10, detalle=turno_creado, lamport=17
+V1 TURNO -> resultado=ASIGNADO, numero=8, emitidos=8, cupo=10, detalle=turno_creado, lamport=19
+V1 TURNO -> resultado=ASIGNADO, numero=9, emitidos=9, cupo=10, detalle=turno_creado, lamport=21
+V1 TURNO -> resultado=ASIGNADO, numero=10, emitidos=10, cupo=10, detalle=turno_creado, lamport=23
+V1 TURNO -> resultado=RECHAZADA, numero=-1, emitidos=10, cupo=10, detalle=cupo_agotado, lamport=25
+V3 TURNO (token incorrecto) -> resultado=RECHAZADA, numero=-1, emitidos=10, cupo=10, detalle=token_invalido, lamport=28

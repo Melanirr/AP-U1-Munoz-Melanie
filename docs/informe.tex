@@ -1,0 +1,82 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,tabularx}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{2em}
+\newcommand{\captura}[3]{\par\hypertarget{#1}{}\textbf{#1. #2}\par
+\includegraphics[width=\linewidth,height=5.5cm,keepaspectratio]{img/#1-local.png}\par
+{\small #3}\par}
+\begin{document}
+{\small UTEQ \quad Ingeniería de Software \quad Aplicaciones Distribuidas (ISR-701) · Grupo 2}\par
+{\LARGE\bfseries TurnoJusto: una cola, tres ventanillas}\par
+Melanie Michelle Muñoz Vera \hfill 23 de noviembre de 2026
+
+\section*{Resultados por escenario}
+El coordinador de Java administra una cola FIFO en memoria y recibe una petición por conexión TCP. Se contrastaron las capturas del laboratorio con una reproducción posterior en Windows, sobre la interfaz local y con cupo 10. Las capturas E1 a E6 muestran la consulta de las salidas conservadas de esa reproducción. La fecha visible corresponde a esa consulta.
+
+{\small\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{@{}p{2.55cm}p{2.25cm}X@{}}
+\toprule
+Escenario & Captura & Observación e interpretación\\ \midrule
+E0. Sin red & Pendiente & El historial contiene el código de sesión \texttt{DQUF-RT}. Falta la salida inicial de \texttt{Get-NetAdapter}; el commit por sí solo no acredita la desconexión.\\
+E1. Cola & \hyperlink{E1}{E1, pág. 3} & V1, V2 y V3 recibieron 1, 2 y 3. El segundo turno de V1 fue 4. V2 llamó al 1 y V3 al 2. Las tres consultas posteriores devolvieron la misma cola, [3, 4].\\
+E2. Rechazos & \hyperlink{E2}{E2, pág. 3} & Con la cola vacía, LLAMAR indicó \texttt{sin\_turnos\_en\_espera}. El undécimo TURNO indicó \texttt{cupo\_agotado}. V3 usó otro token y obtuvo \texttt{token\_invalido}; el coordinador registró RECHAZO.\\
+E3. Carga & \hyperlink{E3}{E3, pág. 3} & Con 30 solicitudes, el modo normal emitió diez números distintos. El inseguro confirmó treinta veces el turno 1. Cifras completas en la página 2.\\
+E4. Caída de V3 & \hyperlink{E4}{E4, pág. 4} & Tras detener V3, el coordinador registró CAIDA con sello 8. Al reiniciarla, registró ACTIVA con sello 10. Son sellos lógicos; el registro no mide la duración exacta en segundos.\\
+E5. Caída central & \hyperlink{E5}{E5, pág. 4} & Con las tres ventanillas activas se detuvo el coordinador. Al pedir turno en V1, la consola devolvió ERROR, número $-1$, y quedó lista para otra orden.\\
+E6. Orden total & \hyperlink{E6}{E6, pág. 4} & La orden \texttt{orden} reunió 387 eventos de E1 a E5. Cada línea conserva su ruta de origen. Dos intercambios identificables se detallan en la página 2.\\
+\bottomrule
+\end{tabularx}}
+
+\textbf{Evidencia del laboratorio.} En \texttt{docs/img/img.png} se ve el coordinador normal en el puerto 5050. Las imágenes \texttt{img\_1.png}, \texttt{img\_2.png} e \texttt{img\_3.png} muestran las ventanillas. V2 llamó al 1, V3 llamó al 2 y V1 y V3 llegaron a ver [3]. El turno 4 y la cola [3, 4] sí se observan en la reproducción.
+
+\newpage
+\section*{Carga, causalidad y decisiones de diseño}
+\textbf{E3.} Cada modo empezó con el coordinador vacío. Tres clientes lanzaron diez solicitudes cada uno mediante una barrera común. El tiempo abarca la liberación de la barrera y la recolección de respuestas, antes de consultar ESTADO.
+
+\begin{tabularx}{\linewidth}{@{}Xrrrrr@{}}
+\toprule
+Modo & Asignadas & Rechazadas & Distintos & Emitidos & Tiempo\\ \midrule
+Normal & 10 & 20 & 10 (1--10) & 10 & 207 ms\\
+Inseguro & 30 & 0 & 1 (solo 1) & 1 & 233 ms\\
+\bottomrule
+\end{tabularx}
+
+\textbf{E6. Dos pares causales.} En E1 se hizo un solo LLAMAR por cada una de estas ventanillas. Se puede emparejar la respuesta del coordinador con su recepción por el tipo y el destinatario, aun sin identificador de solicitud. En \texttt{logs/orden\_total.log}, las rutas de las cuatro líneas empiezan por E1.
+
+\begin{tabularx}{\linewidth}{@{}lXX@{}}
+\toprule
+Intercambio & Envío del coordinador (P0) & Recepción en ventanilla\\ \midrule
+Turno 1 & $L=17$: ENVIA LLAMADO a V2 & $L=18$: V2 RECIBE LLAMADO\\
+Turno 2 & $L=19$: ENVIA LLAMADO a V3 & $L=20$: V3 RECIBE LLAMADO\\
+\bottomrule
+\end{tabularx}
+
+\textbf{1. ¿Por qué se repitió el turno 1?} En modo inseguro los hilos leyeron el mismo contador, calcularon 1 y esperaron 50 ms antes de escribir. El bloqueo de la cola permitió insertar treinta entradas con ese valor. En modo normal, \texttt{synchronized (cerrojoEstado)} reúne la comprobación de cupo, el incremento y la inserción. Un hilo espera mientras otro asigna. Las dos duraciones incluyen red local, registros y planificación; su diferencia no aísla el coste del bloqueo.
+
+\textbf{2. ¿Qué priorizó V1 al perder el coordinador?} V1 devolvió \texttt{coordinador\_no\_disponible} sin emitir un número. Si una partición la aísla, esta decisión conserva una sola secuencia y sacrifica disponibilidad para esa operación; en E5 se probó una caída del proceso. Con prefijos como V2-015 se podría seguir atendiendo y mantener identificadores únicos si cada ventanilla conserva su contador. Se perdería la numeración global consecutiva y habría que acordar cómo respetar el cupo y el orden de llamada.
+
+\textbf{3. ¿Cómo continuar tras una caída?} Una réplica podría asumir el liderazgo si recibe el contador y la cola pendientes. Si el líder confirma el 4 antes de replicarlo y cae, su sucesor podría volver a emitir el 4. Para conservar el servicio y la secuencia habría que acordar quién puede escribir y replicar cada asignación antes de confirmarla.
+
+\textbf{4. ¿Qué ocurre si la red tarda siete segundos?} Los latidos cada 2 s y el umbral de más de 6 s suponen que el retraso suele ser pequeño. El monitor revisa cada segundo. Una pausa de 7 s entre recepciones puede marcar una V3 sana como caída, y el siguiente latido puede reactivarla. Una latencia constante no implica por sí sola un hueco entre llegadas de 7 s. Además, la ventanilla espera como máximo 4 s para leer la respuesta y puede devolver ERROR aunque el servidor haya procesado la petición.
+
+\newpage
+\section*{Capturas de la reproducción · E1 a E3}
+\captura{E1}{Secuencia y estado compartido}{Las dos llamadas retiran los turnos más antiguos. Las tres consultas muestran [3, 4].}
+\vfill
+\captura{E2}{Tres motivos de rechazo}{Extracto de las respuestas. La transcripción completa conserva las once solicitudes de turno.}
+\vfill
+\captura{E3}{Dos ejecuciones con cupo 10}{La cantidad de asignaciones y la de números distintos coinciden solo en el modo normal.}
+
+\newpage
+\section*{Capturas de la reproducción · E4 a E6}
+\captura{E4}{Detención y reinicio de V3}{Las dos líneas proceden del registro del coordinador tras interrumpir y reiniciar la ventanilla.}
+\vfill
+\captura{E5}{Solicitud con el coordinador detenido}{Primero V2 consultó el estado. Después V1 intentó pedir turno desde su consola.}
+\vfill
+\captura{E6}{Eventos de envío y recepción}{Las cuatro líneas seleccionadas pertenecen a E1 dentro del orden combinado de E1 a E5.}
+\end{document}

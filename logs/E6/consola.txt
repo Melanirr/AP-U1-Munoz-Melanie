@@ -1,0 +1,2 @@
+Orden total generado: logs\orden_total.log
+Eventos combinados: 387

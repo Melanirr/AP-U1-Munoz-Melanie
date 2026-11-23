@@ -1,0 +1,9 @@
+V1 TURNO -> resultado=ASIGNADO, numero=1, emitidos=1, cupo=10, detalle=turno_creado, lamport=9
+V2 TURNO -> resultado=ASIGNADO, numero=2, emitidos=2, cupo=10, detalle=turno_creado, lamport=11
+V3 TURNO -> resultado=ASIGNADO, numero=3, emitidos=3, cupo=10, detalle=turno_creado, lamport=13
+V1 TURNO -> resultado=ASIGNADO, numero=4, emitidos=4, cupo=10, detalle=turno_creado, lamport=15
+V2 LLAMAR -> resultado=LLAMADO, numero=1, emitidos=4, cupo=10, detalle=atender_turno, lamport=17
+V3 LLAMAR -> resultado=LLAMADO, numero=2, emitidos=4, cupo=10, detalle=atender_turno, lamport=19
+V1 ESTADO -> resultado=ESTADO, numero=-1, emitidos=4, cupo=10, detalle=espera=[3, 4],ventanillas=V1:ACTIVA,V2:ACTIVA,V3:ACTIVA, lamport=21
+V2 ESTADO -> resultado=ESTADO, numero=-1, emitidos=4, cupo=10, detalle=espera=[3, 4],ventanillas=V1:ACTIVA,V2:ACTIVA,V3:ACTIVA, lamport=23
+V3 ESTADO -> resultado=ESTADO, numero=-1, emitidos=4, cupo=10, detalle=espera=[3, 4],ventanillas=V1:ACTIVA,V2:ACTIVA,V3:ACTIVA, lamport=25

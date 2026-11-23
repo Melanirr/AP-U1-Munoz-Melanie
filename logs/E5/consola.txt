@@ -1,0 +1,5 @@
+V2 ESTADO -> resultado=ESTADO, numero=-1, emitidos=0, cupo=10, detalle=espera=[],ventanillas=V1:ACTIVA,V2:ACTIVA,V3:ACTIVA, lamport=9
+Tras detener el coordinador: V1 > turno
+Ventanilla V1. Ordenes: turno, llamar, estado, salir
+V1> resultado=ERROR, numero=-1, emitidos=-1, cupo=10, detalle=coordinador_no_disponible, lamport=7
+V1>

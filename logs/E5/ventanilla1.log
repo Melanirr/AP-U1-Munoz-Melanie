@@ -1,0 +1,4 @@
+1;1;ENVIA;LATIDO al coordinador
+5;1;RECIBE;OK del coordinador
+6;1;ENVIA;TURNO al coordinador
+7;1;COORDINADOR_NO_DISPONIBLE;Connection refused: connect

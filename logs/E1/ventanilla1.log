@@ -1,0 +1,8 @@
+1;1;ENVIA;LATIDO al coordinador
+4;1;RECIBE;OK del coordinador
+1;1;ENVIA;TURNO al coordinador
+10;1;RECIBE;ASIGNADO del coordinador
+1;1;ENVIA;TURNO al coordinador
+16;1;RECIBE;ASIGNADO del coordinador
+1;1;ENVIA;ESTADO al coordinador
+22;1;RECIBE;ESTADO del coordinador

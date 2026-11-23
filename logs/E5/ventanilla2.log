@@ -1,0 +1,4 @@
+1;2;ENVIA;LATIDO al coordinador
+6;2;RECIBE;OK del coordinador
+1;2;ENVIA;ESTADO al coordinador
+10;2;RECIBE;ESTADO del coordinador
